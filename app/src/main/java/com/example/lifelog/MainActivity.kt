@@ -25,7 +25,8 @@ import androidx.core.content.ContextCompat
 import com.example.lifelog.ui.theme.LifeLogTheme
 import java.io.File
 import android.content.Context
-import android.os.Build
+import android.media.MediaPlayer
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
     private var hasAudioPerms by mutableStateOf(false)
@@ -58,9 +59,13 @@ fun StopwatchScreen(time: Long, hasAudioPerms: Boolean, context: Context) {
     var elapsedTime by remember { mutableStateOf(0L) }
     var transcription by remember { mutableStateOf("this is a test") }
 
+    fun playAudio() {
+        AudioPlayer(context = context).playFile(File(context.filesDir, "audio.mp3"))
+    }
+
     LaunchedEffect(isRunning) {
         while (isRunning) {
-            val record = AndroidAudioRecorder(context = context)
+            val record = AudioRecorder(context = context)
             record.start(File(context.filesDir, "audio.mp3"))
             startTime = System.currentTimeMillis() - elapsedTime
             while (elapsedTime < time) {
@@ -85,6 +90,9 @@ fun StopwatchScreen(time: Long, hasAudioPerms: Boolean, context: Context) {
             Button(onClick = { isRunning = !isRunning }) {
                 Text(if (isRunning) "Stop" else "Start")
             }
+            Button(onClick = { playAudio() }) {
+                Text("Play Audio")
+            }
             Text(
                 text = transcription
             )
@@ -92,7 +100,7 @@ fun StopwatchScreen(time: Long, hasAudioPerms: Boolean, context: Context) {
     }
 }
 
-class AndroidAudioRecorder(
+class AudioRecorder(
     private val context: Context
 ) {
     private var recorder: MediaRecorder? = null
@@ -111,5 +119,23 @@ class AndroidAudioRecorder(
         recorder?.stop()
         recorder?.reset()
         recorder = null
+    }
+}
+
+class AudioPlayer(
+    private val context: Context
+) {
+
+    private var player: MediaPlayer? = null
+
+    fun playFile(file: File) {
+        player = MediaPlayer.create(context, file.toUri())
+        player?.start()
+    }
+
+    fun stop() {
+        player?.stop()
+        player?.release()
+        player = null
     }
 }
