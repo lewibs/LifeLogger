@@ -66,7 +66,7 @@ resource "aws_lambda_function" "audio_to_text" {
   function_name    = "audio_to_text"
   role             = aws_iam_role.example.arn
   timeout          = 60
-  image_uri        = "#TODO"
+  image_uri        = "715006185945.dkr.ecr.us-west-2.amazonaws.com/audio_to_text:latest"
   package_type     = "Image"
    
 
