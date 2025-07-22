@@ -61,22 +61,14 @@ resource "aws_iam_role" "example" {
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
-# Package the Lambda function code
-data "archive_file" "example" {
-  type        = "zip"
-  source_file = "./lambda.py"
-  output_path = "./lambda.zip"
-}
-
 # Lambda function
-resource "aws_lambda_function" "atot_lambda" {
-  filename         = data.archive_file.example.output_path
-  function_name    = "atot_lambda"
+resource "aws_lambda_function" "audio_to_text" {
+  function_name    = "audio_to_text"
   role             = aws_iam_role.example.arn
-  handler          = "lambda.handler"
-  source_code_hash = data.archive_file.example.output_base64sha256
-
-  runtime = "python3.11" 
+  timeout          = 60
+  image_uri        = "#TODO"
+  package_type     = "Image"
+   
 
   environment {
     variables = {
@@ -87,7 +79,7 @@ resource "aws_lambda_function" "atot_lambda" {
 
   tags = {
     Environment = "production"
-    Application = "atot_lambda"
+    Application = "audio_to_text"
   }
 }
 
@@ -106,35 +98,35 @@ output "bucket_domain_name" {
 
 # Lambda function name
 output "lambda_function_name" {
-  value = aws_lambda_function.atot_lambda.function_name
+  value = aws_lambda_function.audio_to_text.function_name
 }
 
 # Lambda function ARN
 output "lambda_function_arn" {
-  value = aws_lambda_function.atot_lambda.arn
+  value = aws_lambda_function.audio_to_text.arn
 }
 
 # Lambda function invoke ARN (useful for API Gateway)
 output "lambda_invoke_arn" {
-  value = aws_lambda_function.atot_lambda.invoke_arn
+  value = aws_lambda_function.audio_to_text.invoke_arn
 }
 
 # Lambda function version
 output "lambda_version" {
-  value = aws_lambda_function.atot_lambda.version
+  value = aws_lambda_function.audio_to_text.version
 }
 
 # Lambda function last modified date
 output "lambda_last_modified" {
-  value = aws_lambda_function.atot_lambda.last_modified
+  value = aws_lambda_function.audio_to_text.last_modified
 }
 
 # Lambda function role ARN
 output "lambda_role_arn" {
-  value = aws_lambda_function.atot_lambda.role
+  value = aws_lambda_function.audio_to_text.role
 }
 
 # Lambda function runtime
 output "lambda_runtime" {
-  value = aws_lambda_function.atot_lambda.runtime
+  value = aws_lambda_function.audio_to_text.runtime
 }
