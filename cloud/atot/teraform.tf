@@ -22,7 +22,7 @@ resource "random_string" "bucket_suffix" {
 
 # Create S3 bucket
 resource "aws_s3_bucket" "example_bucket" {
-  bucket = "LifeLogger-${random_string.bucket_suffix.result}"
+  bucket = "life-logger-${random_string.bucket_suffix.result}"
   
   tags = {
     Name        = "LifeLogs"
@@ -41,19 +41,6 @@ resource "aws_s3_bucket_public_access_block" "example_pab" {
   restrict_public_buckets = true
 }
 
-# Output the bucket name and ARN
-output "bucket_name" {
-  value = aws_s3_bucket.example_bucket.id
-}
-
-output "bucket_arn" {
-  value = aws_s3_bucket.example_bucket.arn
-}
-
-output "bucket_domain_name" {
-  value = aws_s3_bucket.example_bucket.bucket_domain_name
-}
-
 # LAMBDA 
 # IAM role for Lambda execution
 data "aws_iam_policy_document" "assume_role" {
@@ -70,7 +57,7 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "example" {
-  name               = "atot_lambda"
+  name               = "atot_iam"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
@@ -82,11 +69,11 @@ data "archive_file" "example" {
 }
 
 # Lambda function
-resource "aws_lambda_function" "example" {
+resource "aws_lambda_function" "atot_lambda" {
   filename         = data.archive_file.example.output_path
-  function_name    = "example_lambda_function"
+  function_name    = "atot_lambda"
   role             = aws_iam_role.example.arn
-  handler          = "index.handler"
+  handler          = "lambda.handler"
   source_code_hash = data.archive_file.example.output_base64sha256
 
   runtime = "python3.11" 
@@ -100,6 +87,54 @@ resource "aws_lambda_function" "example" {
 
   tags = {
     Environment = "production"
-    Application = "example"
+    Application = "atot_lambda"
   }
+}
+
+# Output the bucket name and ARN
+output "bucket_name" {
+  value = aws_s3_bucket.example_bucket.id
+}
+
+output "bucket_arn" {
+  value = aws_s3_bucket.example_bucket.arn
+}
+
+output "bucket_domain_name" {
+  value = aws_s3_bucket.example_bucket.bucket_domain_name
+}
+
+# Lambda function name
+output "lambda_function_name" {
+  value = aws_lambda_function.atot_lambda.function_name
+}
+
+# Lambda function ARN
+output "lambda_function_arn" {
+  value = aws_lambda_function.atot_lambda.arn
+}
+
+# Lambda function invoke ARN (useful for API Gateway)
+output "lambda_invoke_arn" {
+  value = aws_lambda_function.atot_lambda.invoke_arn
+}
+
+# Lambda function version
+output "lambda_version" {
+  value = aws_lambda_function.atot_lambda.version
+}
+
+# Lambda function last modified date
+output "lambda_last_modified" {
+  value = aws_lambda_function.atot_lambda.last_modified
+}
+
+# Lambda function role ARN
+output "lambda_role_arn" {
+  value = aws_lambda_function.atot_lambda.role
+}
+
+# Lambda function runtime
+output "lambda_runtime" {
+  value = aws_lambda_function.atot_lambda.runtime
 }

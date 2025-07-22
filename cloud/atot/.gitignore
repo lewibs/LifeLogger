@@ -92,3 +92,6 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+lambda.zip
+./lambda/*
