@@ -26,6 +26,7 @@ import com.example.lifelog.ui.theme.LifeLogTheme
 import java.io.File
 import android.content.Context
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
@@ -41,44 +42,33 @@ class MainActivity : ComponentActivity() {
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasAudioPerms) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.RECORD_AUDIO), 100)
-            //TODO if they say no throw an error?
-        } else {
-            val transcriber = Transcriber(applicationContext)
-//            transcriber.destroy()
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                100
+            )
+            // TODO Throw if permission is not granted
         }
 
         setContent {
             LifeLogTheme {
-                StopwatchScreen(10000, applicationContext)
+                StopwatchScreen(applicationContext)
             }
         }
     }
 }
 
 @Composable
-fun StopwatchScreen(time: Long, context: Context) {
-    var isRunning by remember { mutableStateOf(false) }
-    var startTime by remember { mutableStateOf(0L) }
-    var elapsedTime by remember { mutableStateOf(0L) }
-    val transcription by remember { mutableStateOf("this is a test") }
+fun StopwatchScreen(context: Context) {
+    val transcriber = Transcriber(context)
+    val transcription = remember { mutableStateOf("Starting...") }
 
-    fun playAudio() {
-        AudioPlayer(context = context).playFile(File(context.filesDir, "audio.mp3"))
+    transcriber.addOnResultCallback("result") { results ->
+        transcription.value = results
     }
 
-    LaunchedEffect(isRunning) {
-        while (isRunning) {
-            val record = AudioRecorder(context = context)
-            record.start(File(context.filesDir, "audio.mp3"))
-            startTime = System.currentTimeMillis() - elapsedTime
-            while (elapsedTime < time) {
-                elapsedTime = System.currentTimeMillis() - startTime
-                delay(10) // Update more frequently for smoother display
-            }
-            record.stop()
-            elapsedTime = 0
-        }
+    transcriber.addOnFinalResultCallback("final") { results ->
+        transcription.value = results
     }
 
     Box(
@@ -88,58 +78,18 @@ fun StopwatchScreen(time: Long, context: Context) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = elapsedTime.toString(),
-            )
-            Button(onClick = { isRunning = !isRunning }) {
-                Text(if (isRunning) "Stop" else "Start")
+            Button(onClick = {
+                if (transcriber.state == State.Playing) {
+                    transcriber.destroy()
+                } else {
+                    transcriber.init(context)
+                }
+            }) {
+                Text(if (transcriber.state == State.Playing) "Stop" else "Start")
             }
-            Button(onClick = { playAudio() }) {
-                Text("Play Audio")
-            }
             Text(
-                text = transcription
+                text = transcription.value
             )
         }
     }
-}
-
-class AudioRecorder(
-    private val context: Context
-) {
-    private var recorder: MediaRecorder? = null
-
-    fun start(outputFile: File) {
-        recorder = MediaRecorder(context)
-        recorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-        recorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        recorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        recorder?.setOutputFile(outputFile)
-        recorder?.prepare()
-        recorder?.start()
-    }
-
-    fun stop() {
-        recorder?.stop()
-        recorder?.reset()
-        recorder = null
-    }
-}
-
-class AudioPlayer(
-    private val context: Context
-) {
-
-    private var player: MediaPlayer? = null
-
-    fun playFile(file: File) {
-        player = MediaPlayer.create(context, file.toUri())
-        player?.start()
-    }
-
-//    fun stop() {
-//        player?.stop()
-//        player?.release()
-//        player = null
-//    }
 }
