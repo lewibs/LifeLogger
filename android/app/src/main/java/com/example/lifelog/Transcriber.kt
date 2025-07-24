@@ -43,7 +43,7 @@ class Transcriber internal constructor(context: Context?) : RecognitionListener 
         LibVosk.setLogLevel(LogLevel.INFO)
 
         StorageService.unpack(
-            context, "model-en-us", "model",
+            context, "vosk-model-small-en-us-0.15", "model",
             { model: Model? ->
                 this.model = model
                 val rec = Recognizer(model, 16000.0f)
