@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
             //TODO if they say no throw an error?
         } else {
             val transcriber = Transcriber(applicationContext)
-            transcriber.destroy()
+//            transcriber.destroy()
         }
 
         setContent {
