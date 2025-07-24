@@ -19,6 +19,7 @@ enum class State {
 
 class Transcriber internal constructor(context: Context?) : RecognitionListener {
     var state: State? = null
+    var counter: Int = 0
 
     private var context: Context? = null
     private var model: Model? = null
@@ -71,6 +72,7 @@ class Transcriber internal constructor(context: Context?) : RecognitionListener 
 
     override fun onResult(hypothesis: String) {
         onResultCallbacks.forEach { (tag, callback) -> callback(hypothesis) }
+        counter++
     }
 
     fun addOnResultCallback(tag: String, callback: (String) -> Unit) {
@@ -134,7 +136,7 @@ class Transcriber internal constructor(context: Context?) : RecognitionListener 
         onTimeoutCallbacks.remove(tag)
     }
 
-    private fun pause(checked: Boolean) {
+    fun pause(checked: Boolean) {
         if (speechService != null) {
             speechService!!.setPause(checked)
             state = if (checked) State.Paused else State.Playing
