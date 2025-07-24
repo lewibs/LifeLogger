@@ -11,8 +11,8 @@ import org.vosk.android.RecognitionListener;
 import org.vosk.android.SpeechService;
 import org.vosk.android.SpeechStreamService;
 import org.vosk.android.StorageService;
-
-import java.io.IOException;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 
 public class Transcriber implements RecognitionListener {
 
@@ -20,20 +20,24 @@ public class Transcriber implements RecognitionListener {
     private SpeechService speechService;
     private SpeechStreamService speechStreamService;
 
-    Transcriber(Bundle state, Context context) {
-        System.out.println("TEST");
-        //recognizeMicrophone();
+    Transcriber(Context context) {
         LibVosk.setLogLevel(LogLevel.INFO);
-        //initModel(context);
-    }
 
-    private void initModel(Context context) {
-        //TODO add the model files into android.
+        // TOOD add the models to the source.
         StorageService.unpack(context, "model-en-us", "model",
                 (model) -> {
                     this.model = model;
+                    try {
+                        Recognizer rec = new Recognizer(model, 16000.0f);
+                        speechService = new SpeechService(rec, 16000.0f);
+                        speechService.startListening(this);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
                 },
-                (exception) -> System.out.println("Failed to unpack the model" + exception.getMessage()));
+                (exception) -> {
+                    System.out.println(exception.getMessage());
+                });
     }
 
     public void destroy() {
@@ -73,21 +77,6 @@ public class Transcriber implements RecognitionListener {
     @Override
     public void onTimeout() {
         System.out.println("Timeout");
-    }
-
-    private void recognizeMicrophone() {
-        if (speechService != null) {
-            speechService.stop();
-            speechService = null;
-        } else {
-            try {
-                Recognizer rec = new Recognizer(model, 16000.0f);
-                speechService = new SpeechService(rec, 16000.0f);
-                speechService.startListening(this);
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-        }
     }
 
     private void pause(boolean checked) {

@@ -43,24 +43,25 @@ class MainActivity : ComponentActivity() {
         if (!hasAudioPerms) {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.RECORD_AUDIO), 100)
             //TODO if they say no throw an error?
+        } else {
+            val transcriber = Transcriber(applicationContext)
+            transcriber.destroy()
         }
-
-        val transcriber = Transcriber(savedInstanceState, applicationContext)
 
         setContent {
             LifeLogTheme {
-                StopwatchScreen(10000, hasAudioPerms, applicationContext)
+                StopwatchScreen(10000, applicationContext)
             }
         }
     }
 }
 
 @Composable
-fun StopwatchScreen(time: Long, hasAudioPerms: Boolean, context: Context) {
+fun StopwatchScreen(time: Long, context: Context) {
     var isRunning by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf(0L) }
     var elapsedTime by remember { mutableStateOf(0L) }
-    var transcription by remember { mutableStateOf("this is a test") }
+    val transcription by remember { mutableStateOf("this is a test") }
 
     fun playAudio() {
         AudioPlayer(context = context).playFile(File(context.filesDir, "audio.mp3"))
@@ -136,9 +137,9 @@ class AudioPlayer(
         player?.start()
     }
 
-    fun stop() {
-        player?.stop()
-        player?.release()
-        player = null
-    }
+//    fun stop() {
+//        player?.stop()
+//        player?.release()
+//        player = null
+//    }
 }

@@ -55,5 +55,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(group = "com.alphacephei", name = "vosk-android", version = "0.3.32+")
+    implementation(group = "com.alphacephei", name = "vosk-android", version = "0.3.47")
 }
