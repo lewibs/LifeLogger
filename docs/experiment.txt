@@ -1,0 +1,481 @@
+
+Analyze the following event inputs:
+
+1. Audio: {audio_transcript_or_description}  
+2. Visual media: {photo_or_video_description}  
+3. Metadata: {metadata_info}  
+
+Break down the information into the following categories, formatted explicitly for Neo4j:
+
+Requirements:  
+- Each distinct location, person, object, action, or other data type must be represented as a node.  
+- Include relevant properties for each node (e.g., name, description, attributes, timestamp, device, weather).  
+- Identify relationships between nodes (e.g., :LOCATED_AT, :INTERACTS_WITH, :USES, :PART_OF_EVENT).  
+- Use full descriptive sentences in the node properties wherever appropriate.  
+- Include temporal, emotional, and sensory properties when applicable.  
+- If the same entity appears in multiple inputs (like a person or a location), unify it as a single node and reference it in relationships.
+
+Neo4j Node & Relationship Template:
+
+{
+  "Event": {
+    "properties": {
+      "event_id": "unique_event_id",
+      "event_type": "social, professional, personal, etc.",
+      "significance": "minor, major, life-changing",
+      "timestamp": "ISO8601",
+      "frequency": "one-time, recurring"
+    },
+    "relationships": {
+      "HAS_LOCATION": ["Location nodes"],
+      "HAS_PERSON": ["Person nodes"],
+      "HAS_OBJECT": ["Object nodes"],
+      "HAS_ACTION": ["Action nodes"]
+    }
+  },
+  "Location": {
+    "properties": {
+      "name": "specific area or room",
+      "description": "Detailed environmental context",
+      "micro_locations": "sub-areas within the location",
+      "weather": "if outdoor",
+      "contextual_notes": "noise, lighting, temperature, etc."
+    },
+    "relationships": {
+      "VISITED_BY": ["Person nodes"],
+      "CONTAINS": ["Object nodes", "Action nodes"]
+    }
+  },
+  "Person": {
+    "properties": {
+      "name": "Full name or identifier",
+      "age": "if known",
+      "gender": "if known",
+      "appearance": "clothing, distinctive features",
+      "emotional_state": "mood, intensity, triggers"
+    },
+    "relationships": {
+      "INTERACTS_WITH": ["Person nodes"],
+      "PERFORMS": ["Action nodes"],
+      "USES": ["Object nodes"],
+      "LOCATED_AT": ["Location nodes"]
+    }
+  },
+  "Action": {
+    "properties": {
+      "action_type": "e.g., walking, talking, eating",
+      "description": "Detailed description of action",
+      "timestamp": "ISO8601",
+      "duration_seconds": "if known"
+    },
+    "relationships": {
+      "PERFORMED_BY": ["Person nodes"],
+      "AT_LOCATION": ["Location nodes"],
+      "INVOLVES_OBJECT": ["Object nodes"]
+    }
+  },
+  "Object": {
+    "properties": {
+      "name": "e.g., ice cream, camera, kayak",
+      "description": "Appearance, color, size, quantity, usage"
+    },
+    "relationships": {
+      "USED_BY": ["Person nodes"],
+      "LOCATED_AT": ["Location nodes"],
+      "PART_OF_ACTION": ["Action nodes"]
+    }
+  },
+  "Media": {
+    "properties": {
+      "media_type": "photo, video, audio",
+      "description": "Scene description or transcript",
+      "length_seconds": "if applicable"
+    },
+    "relationships": {
+      "CAPTURES": ["Action nodes", "Person nodes", "Location nodes", "Object nodes"]
+    }
+  }
+}
+
+Additional Instructions:  
+1. Identify all micro-locations separately. Each should be a distinct Location node.  
+2. Every person mentioned in audio, visual, or metadata should be a Person node.  
+3. Every object, tool, or consumable should be a distinct Object node.  
+4. Every activity, task, or gesture should be represented as an Action node, linked to the performing person, objects used, and location.  
+5. Sensory data (visual, audio, other senses) should be stored as properties of the relevant nodes (e.g., visual details attached to Location or Media nodes).  
+6. Emotional and cognitive insights should be properties of Person nodes.  
+7. Temporal sequencing (timestamps and durations) should be included in Action nodes and linked to the Event node.
+
+
+
+BELOW IS THE RAW DATA USE THIS FOR THE ABOVE PROMPT
+
+**Audio Transcript with Visual Context + Metadata (Coworker Weekend Suggestions)**
+
+**Audio Transcript:**  
+**Emma:** Hey, welcome to the team! How’s your first week going?  
+
+**You:** Pretty good, thanks! Still trying to figure out what to do around here on the weekends.  
+
+**Emma:** Oh, I totally get that. If you’re looking for something outdoors, there’s a really nice trail up in the hills nearby. Perfect for a hike, especially this weekend—the weather’s supposed to be amazing.  
+
+**Visual Description:** A scenic trail winding through the hills, surrounded by lush green trees under a clear blue sky. Sunlight filters through the leaves, casting soft shadows on the path.  
+
+**You:** That sounds great! I could use some fresh air.  
+
+**Emma:** Or, if you’re into local markets, there’s a farmers’ market downtown on Saturday morning. They have fresh produce, flowers, and sometimes even live music. It’s a fun way to get a feel for the city.  
+
+**Visual Description:** Colorful farmers’ market stalls with neatly arranged fruits, vegetables, and flowers. People browse the stalls, sunlight reflecting off the produce. Soft street noise and chatter in the background.  
+
+**You:** Nice, I love farmers’ markets.  
+
+**Emma:** And for something a bit more low-key, there’s a new mini-golf course that just opened. The course looks really fun, and it’s a good afternoon activity.  
+
+**Visual Description:** Three people standing next to a mini-golf course, smiling and pointing at the holes. Bright green turf, colorful golf obstacles, and clear daylight create a lively scene.  
+
+**You:** I’ve never been to mini-golf here, that could be fun.  
+
+**Emma:** We could also end the day at the lakeside with some ice cream. Super relaxing spot to just sit and enjoy the scenery.  
+
+**Visual Description:** A wooden bench by a calm lake, sunlight reflecting on the water. Ice cream cones sit on the bench, with trees and blue sky in the background. Shadows indicate late afternoon sunlight.  
+
+**You:** Sounds like a perfect day!  
+
+**Emma:** If you’re up for it, on Sunday the weather should be good for kayaking. There’s a calm river not far from here. You could bring a friend or even join one of the local rental groups.  
+
+**Visual Description:** Two kayaks resting on a calm river, surrounded by trees lining both banks. Gentle ripples in the water reflect the early morning sun.  
+
+**You:** Oh wow, I’ve never kayaked before, but that sounds exciting.  
+
+**Emma:** I can bring my camera if you want some photos. And I usually pick up some snacks and drinks for these outings too.  
+
+**Visual Description:** A DSLR camera hanging from Emma’s shoulder and a small cooler with snacks and drinks, ready for the trip. The scene is bright, warm, and inviting.  
+
+**You:** That’s awesome, thanks! I think I’ll have a great first weekend exploring.  
+
+---
+
+### Metadata for Audio
+{
+  "audio": {
+    "device": "iPhone 15 Pro Max",
+    "audio_length_seconds": 210,
+    "sample_rate": "48kHz",
+    "bit_depth": "24-bit",
+    "microphone_type": "built-in stereo",
+    "location": "San Francisco, CA",
+    "weather": "Sunny, 72°F, light breeze",
+    "timestamp": "2025-10-10T10:00:00Z",
+    "background_noise": "birds chirping, street noise, wind rustling leaves",
+    "speakers": [
+      {"name": "Emma", "role": "coworker, local guide"},
+      {"name": "You", "role": "new team member"}
+    ]
+  }
+}
+
+### Metadata for Video
+{
+  "video": {
+    "device": "iPhone 15 Pro Max",
+    "video_length_seconds": 180,
+    "resolution": "4K",
+    "frame_rate": "60fps",
+    "orientation": "landscape",
+    "location": "San Francisco, CA",
+    "weather": "Sunny, 72°F, light breeze",
+    "timestamp_start": "2025-10-10T10:00:00Z",
+    "visual_content": [
+      "hiking trail in the hills",
+      "farmers' market stalls",
+      "mini-golf course",
+      "lakeside bench with ice cream",
+      "kayaks on calm river"
+    ],
+    "audio_tracks": "recorded conversation from audio metadata",
+    "people_in_frame": [
+      {"name": "Emma", "appearance": "female, 30s, wearing a green jacket"},
+      {"name": "You", "appearance": "male/female, new to town, casual clothes"}
+    ],
+    "objects_in_frame": [
+      "trail path", "trees", "fruits", "vegetables", "flowers", 
+      "mini-golf holes", "bench", "ice cream cones", "kayaks", 
+      "camera", "snacks"
+    ],
+    "lighting_conditions": "bright daylight, natural sunlight, slight shadows",
+    "camera_movements": "static shots and slow pans of trails, market, and river"
+  }
+}
+
+
+CHATGPT RESPONSE
+
+
+{
+  "Event": {
+    "properties": {
+      "event_id": "weekend_exploration_sf_2025_10_10",
+      "event_type": "social/personal",
+      "significance": "minor",
+      "timestamp": "2025-10-10T10:00:00Z",
+      "frequency": "one-time"
+    },
+    "relationships": {
+      "HAS_LOCATION": ["HikingTrail_Hills", "FarmersMarket_Downtown", "MiniGolfCourse", "LakesideBench", "CalmRiver"],
+      "HAS_PERSON": ["Emma", "You"],
+      "HAS_OBJECT": ["Camera", "Snacks", "TrailPath", "Trees", "Fruits", "Vegetables", "Flowers", "MiniGolfHoles", "Bench", "IceCreamCones", "Kayaks"],
+      "HAS_ACTION": ["ConversationWithEmma", "Hiking", "BrowsingMarket", "PlayingMiniGolf", "RelaxingLakeside", "Kayaking", "Photography", "EatingSnacks"]
+    }
+  },
+  "Location": {
+    "HikingTrail_Hills": {
+      "properties": {
+        "name": "Hiking trail in the nearby hills",
+        "description": "A scenic trail winding through lush green trees under a clear blue sky, sunlight filtering through leaves.",
+        "micro_locations": "trailhead, middle path, hilltop viewpoint",
+        "weather": "Sunny, 72°F, light breeze",
+        "contextual_notes": "birds chirping, soft shadows, quiet with occasional hikers"
+      },
+      "relationships": {
+        "VISITED_BY": ["Emma", "You"],
+        "CONTAINS": ["TrailPath", "Trees", "Hiking"]
+      }
+    },
+    "FarmersMarket_Downtown": {
+      "properties": {
+        "name": "Downtown Farmers' Market",
+        "description": "Colorful stalls with neatly arranged fruits, vegetables, and flowers; occasional live music.",
+        "micro_locations": "fruit section, flower section, produce stalls",
+        "weather": "Sunny, 72°F",
+        "contextual_notes": "people browsing, soft street noise, chatter in background"
+      },
+      "relationships": {
+        "VISITED_BY": ["Emma", "You"],
+        "CONTAINS": ["Fruits", "Vegetables", "Flowers", "BrowsingMarket"]
+      }
+    },
+    "MiniGolfCourse": {
+      "properties": {
+        "name": "New mini-golf course",
+        "description": "Bright green turf with colorful golf obstacles; open-air, sunny daytime.",
+        "micro_locations": "hole 1, hole 5, putting area",
+        "weather": "Sunny, 72°F",
+        "contextual_notes": "lively, people smiling and pointing at holes"
+      },
+      "relationships": {
+        "VISITED_BY": ["Emma", "You"],
+        "CONTAINS": ["MiniGolfHoles", "PlayingMiniGolf"]
+      }
+    },
+    "LakesideBench": {
+      "properties": {
+        "name": "Bench by the calm lake",
+        "description": "Wooden bench with sunlight reflecting on water; trees and blue sky in background.",
+        "micro_locations": "bench seating, lakeshore edge",
+        "weather": "Sunny, late afternoon",
+        "contextual_notes": "relaxing atmosphere, soft water ripples, ice cream on bench"
+      },
+      "relationships": {
+        "VISITED_BY": ["Emma", "You"],
+        "CONTAINS": ["Bench", "IceCreamCones", "RelaxingLakeside"]
+      }
+    },
+    "CalmRiver": {
+      "properties": {
+        "name": "Calm river nearby",
+        "description": "Two kayaks resting on calm water, trees lining both banks; early morning sunlight reflecting gently.",
+        "micro_locations": "riverbank launch, mid-river, riverside path",
+        "weather": "Sunny, early morning",
+        "contextual_notes": "gentle ripples, quiet environment"
+      },
+      "relationships": {
+        "VISITED_BY": ["Emma", "You"],
+        "CONTAINS": ["Kayaks", "Kayaking"]
+      }
+    }
+  },
+  "Person": {
+    "Emma": {
+      "properties": {
+        "name": "Emma",
+        "age": "30s",
+        "gender": "female",
+        "appearance": "wearing a green jacket",
+        "emotional_state": "friendly, enthusiastic, helpful; suggests activities with excitement"
+      },
+      "relationships": {
+        "INTERACTS_WITH": ["You"],
+        "PERFORMS": ["ConversationWithEmma", "Photography", "EatingSnacks"],
+        "USES": ["Camera", "Snacks"],
+        "LOCATED_AT": ["HikingTrail_Hills", "FarmersMarket_Downtown", "MiniGolfCourse", "LakesideBench", "CalmRiver"]
+      }
+    },
+    "You": {
+      "properties": {
+        "name": "You",
+        "appearance": "casual clothes, new to town",
+        "emotional_state": "curious, engaged, excited about weekend activities"
+      },
+      "relationships": {
+        "INTERACTS_WITH": ["Emma"],
+        "PERFORMS": ["ConversationWithEmma", "Hiking", "BrowsingMarket", "PlayingMiniGolf", "RelaxingLakeside", "Kayaking", "EatingSnacks"],
+        "USES": [],
+        "LOCATED_AT": ["HikingTrail_Hills", "FarmersMarket_Downtown", "MiniGolfCourse", "LakesideBench", "CalmRiver"]
+      }
+    }
+  },
+  "Action": {
+    "ConversationWithEmma": {
+      "properties": {
+        "action_type": "conversation",
+        "description": "Discussing weekend activity options, sharing recommendations.",
+        "timestamp": "2025-10-10T10:00:00Z",
+        "duration_seconds": 210
+      },
+      "relationships": {
+        "PERFORMED_BY": ["Emma", "You"],
+        "AT_LOCATION": ["HikingTrail_Hills"],
+        "INVOLVES_OBJECT": []
+      }
+    },
+    "Hiking": {
+      "properties": {
+        "action_type": "hiking",
+        "description": "Walking along a scenic trail through hills and trees.",
+        "timestamp": "2025-10-10T10:15:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["You"],
+        "AT_LOCATION": ["HikingTrail_Hills"],
+        "INVOLVES_OBJECT": ["TrailPath", "Trees"]
+      }
+    },
+    "BrowsingMarket": {
+      "properties": {
+        "action_type": "browsing",
+        "description": "Exploring various stalls at the farmers' market, observing produce and flowers.",
+        "timestamp": "2025-10-10T11:30:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["You"],
+        "AT_LOCATION": ["FarmersMarket_Downtown"],
+        "INVOLVES_OBJECT": ["Fruits", "Vegetables", "Flowers"]
+      }
+    },
+    "PlayingMiniGolf": {
+      "properties": {
+        "action_type": "playing mini-golf",
+        "description": "Engaging in a casual game on the colorful mini-golf course.",
+        "timestamp": "2025-10-10T13:00:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["You", "Emma"],
+        "AT_LOCATION": ["MiniGolfCourse"],
+        "INVOLVES_OBJECT": ["MiniGolfHoles"]
+      }
+    },
+    "RelaxingLakeside": {
+      "properties": {
+        "action_type": "relaxing",
+        "description": "Sitting on a bench by the lake, enjoying ice cream and scenery.",
+        "timestamp": "2025-10-10T15:30:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["You", "Emma"],
+        "AT_LOCATION": ["LakesideBench"],
+        "INVOLVES_OBJECT": ["Bench", "IceCreamCones"]
+      }
+    },
+    "Kayaking": {
+      "properties": {
+        "action_type": "kayaking",
+        "description": "Paddling on a calm river, enjoying early morning sunlight.",
+        "timestamp": "2025-10-11T09:00:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["You", "Emma"],
+        "AT_LOCATION": ["CalmRiver"],
+        "INVOLVES_OBJECT": ["Kayaks"]
+      }
+    },
+    "Photography": {
+      "properties": {
+        "action_type": "photography",
+        "description": "Emma taking photos during outings using her DSLR camera.",
+        "timestamp": "2025-10-10T10:30:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["Emma"],
+        "AT_LOCATION": ["HikingTrail_Hills", "FarmersMarket_Downtown", "MiniGolfCourse", "LakesideBench", "CalmRiver"],
+        "INVOLVES_OBJECT": ["Camera"]
+      }
+    },
+    "EatingSnacks": {
+      "properties": {
+        "action_type": "eating",
+        "description": "Consuming snacks prepared by Emma during the outing.",
+        "timestamp": "2025-10-10T16:00:00Z"
+      },
+      "relationships": {
+        "PERFORMED_BY": ["Emma", "You"],
+        "AT_LOCATION": ["CalmRiver", "LakesideBench"],
+        "INVOLVES_OBJECT": ["Snacks"]
+      }
+    }
+  },
+  "Object": {
+    "Camera": {
+      "properties": {
+        "name": "DSLR camera",
+        "description": "Camera hanging from Emma’s shoulder for photography purposes."
+      },
+      "relationships": {
+        "USED_BY": ["Emma"],
+        "LOCATED_AT": ["HikingTrail_Hills", "FarmersMarket_Downtown", "MiniGolfCourse", "LakesideBench", "CalmRiver"],
+        "PART_OF_ACTION": ["Photography"]
+      }
+    },
+    "Snacks": {
+      "properties": {
+        "name": "Snacks and drinks",
+        "description": "Small cooler with assorted snacks and beverages for the outing."
+      },
+      "relationships": {
+        "USED_BY": ["Emma", "You"],
+        "LOCATED_AT": ["LakesideBench", "CalmRiver"],
+        "PART_OF_ACTION": ["EatingSnacks"]
+      }
+    },
+    "TrailPath": {"properties":{"name":"Trail Path","description":"Main path along the hiking trail"},"relationships":{"LOCATED_AT":["HikingTrail_Hills"],"USED_BY":["You"],"PART_OF_ACTION":["Hiking"]}},
+    "Trees": {"properties":{"name":"Trees","description":"Lush green trees lining the hiking trail"},"relationships":{"LOCATED_AT":["HikingTrail_Hills"],"PART_OF_ACTION":["Hiking"]}},
+    "Fruits": {"properties":{"name":"Fruits","description":"Fresh fruits at the farmers' market"},"relationships":{"LOCATED_AT":["FarmersMarket_Downtown"],"PART_OF_ACTION":["BrowsingMarket"]}},
+    "Vegetables": {"properties":{"name":"Vegetables","description":"Fresh vegetables at the farmers' market"},"relationships":{"LOCATED_AT":["FarmersMarket_Downtown"],"PART_OF_ACTION":["BrowsingMarket"]}},
+    "Flowers": {"properties":{"name":"Flowers","description":"Decorative flowers at the farmers' market"},"relationships":{"LOCATED_AT":["FarmersMarket_Downtown"],"PART_OF_ACTION":["BrowsingMarket"]}},
+    "MiniGolfHoles": {"properties":{"name":"Mini-golf holes","description":"Obstacles and holes on the mini-golf course"},"relationships":{"LOCATED_AT":["MiniGolfCourse"],"PART_OF_ACTION":["PlayingMiniGolf"]}},
+    "Bench": {"properties":{"name":"Bench","description":"Wooden bench by the lake"},"relationships":{"LOCATED_AT":["LakesideBench"],"PART_OF_ACTION":["RelaxingLakeside"]}},
+    "IceCreamCones": {"properties":{"name":"Ice cream cones","description":"Scoops of ice cream enjoyed by participants"},"relationships":{"LOCATED_AT":["LakesideBench"],"PART_OF_ACTION":["RelaxingLakeside"]}},
+    "Kayaks": {"properties":{"name":"Kayaks","description":"Two kayaks for use on the calm river"},"relationships":{"LOCATED_AT":["CalmRiver"],"PART_OF_ACTION":["Kayaking"]}}
+  },
+  "Media": {
+    "AudioRecording": {
+      "properties": {
+        "media_type": "audio",
+        "description": "Conversation between Emma and You discussing weekend activities.",
+        "length_seconds": 210
+      },
+      "relationships": {
+        "CAPTURES": ["ConversationWithEmma", "Emma", "You", "HikingTrail_Hills", "FarmersMarket_Downtown", "MiniGolfCourse", "LakesideBench", "CalmRiver"]
+      }
+    },
+    "VideoRecording": {
+      "properties": {
+        "media_type": "video",
+        "description": "Visual capture of trail, market, mini-golf, lakeside, and river scenes with participants and objects.",
+        "length_seconds": 180
+      },
+      "relationships": {
+        "CAPTURES": ["Hiking", "BrowsingMarket", "PlayingMiniGolf", "RelaxingLakeside", "Kayaking", "Emma", "You", "TrailPath", "Trees", "Fruits", "Vegetables", "Flowers", "MiniGolfHoles", "Bench", "IceCreamCones", "Kayaks"]
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+
+Analyze the following inputs from an event:
+
+1. Audio: {audio_transcript_or_description}
+2. Visual media: {photo_or_video_description}
+3. Metadata: {metadata_info}
+
+Break down the information into the following categories:
+
+{
+  "Location": {
+    "micro_locations": "Describe specific areas or rooms",
+    "movement_paths": "Describe how the person moved between spaces",
+    "contextual_info": "Environmental details like indoor/outdoor, weather, noise"
+  },
+  "People": {
+    "individuals": "Identify people present",
+    "interactions": "Describe conversations, gestures, or conflicts",
+    "relationships": "Infer relationships or roles if possible"
+  },
+  "Facts_Observations": {
+    "cognitive_insights": "Observations or realizations",
+    "decisions_predictions": "Choices made or predictions inferred"
+  },
+  "Action_Items": "Describe tasks or actions performed",
+  "Temporal_Chronology": {
+    "timestamp": "Specific time or date",
+    "duration_sequence": "Length of actions and their sequence",
+    "recurring_events": "Any repeated patterns"
+  },
+  "Emotional_Sentiment": {
+    "mood_feeling": "Detected emotions",
+    "intensity": "Strength of emotion",
+    "emotional_triggers": "Causes of the emotions"
+  },
+  "Objects_Things": {
+    "physical_objects": "Objects seen or interacted with",
+    "digital_objects": "Files, messages, media",
+    "attributes": "Color, size, quantity, usage"
+  },
+  "Sensory_Data": {
+    "visual": "Colors, brightness, motion, composition",
+    "audio": "Pitch, volume, background noise, speech content",
+    "other_senses": "Smell, taste, touch, temperature"
+  },
+  "Event_Metadata": {
+    "event_type": "Social, professional, personal, etc.",
+    "significance_impact": "Minor, major, life-changing",
+    "frequency_rarity": "One-time, recurring"
+  },
+  "Media_Specific": {
+    "photo_tags": "Objects, colors, scenes",
+    "audio_transcripts": "Exact spoken words, speaker identity",
+    "video_frames": "Gestures, facial expressions, motion"
+  },
+  "External_References": {
+    "linked_entities": "Places, people, brands, social media mentions",
+    "temporal_anchors": "Holidays, news events, time markers",
+    "cultural_context": "Norms, expectations, societal factors"
+  }
+}
+
+Be extremely descriptive, and do not omit any detail that can be inferred from the input data. Use full sentences for observations where appropriate.

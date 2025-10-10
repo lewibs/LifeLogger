@@ -1,0 +1,46 @@
+
+{
+  "event_text_data": {
+    "audio_transcript": "Alex: Hey everyone, any ideas for fun things to do this weekend? \nJamie: How about a hike in the hills? The weather is supposed to be amazing. \nSam: We could also check out the farmers' market downtown on Saturday morning. Lots of fresh produce and live music. \nAlex: Sounds good! Maybe in the afternoon we can try that new mini-golf place. I heard it's really fun. \nJamie: I’m in! And maybe we can end the day with ice cream at the lakeside. \nSam: Perfect, and on Sunday we could go kayaking if the weather stays nice. \nAlex: Oh yes, I’ve been wanting to do that. \nJamie: I’ll bring my camera for some scenic shots. \nSam: I can pick up some snacks and drinks for the outing.",
+    "photo_descriptions": [
+      "A photo of a scenic trail in the hills, surrounded by trees and a clear blue sky.",
+      "A colorful farmers' market stall with fruits, vegetables, and flowers neatly displayed.",
+      "Three people standing next to a mini-golf course, smiling and pointing at the holes.",
+      "A lakeside bench with ice cream cones placed on it, reflecting the sunlight.",
+      "Two kayaks on a calm river with trees lining both banks."
+    ],
+    "metadata_text": {
+      "timestamp": "2025-10-10T10:00:00Z",
+      "location": "San Francisco, CA",
+      "weather": "Sunny, 72°F, light breeze",
+      "device": "iPhone 15 Pro Max, GPS enabled",
+      "audio_length_seconds": 180,
+      "photo_count": 5,
+      "video_length_seconds": 120
+    },
+    "objects_in_frame": [
+      "trail path",
+      "trees",
+      "fruits",
+      "vegetables",
+      "flowers",
+      "mini-golf holes",
+      "bench",
+      "ice cream cones",
+      "kayaks",
+      "river",
+      "camera",
+      "snacks"
+    ],
+    "people_in_frame": [
+      "Alex: male, 30s, wearing a blue jacket",
+      "Jamie: female, 20s, wearing a yellow hoodie",
+      "Sam: male, 30s, wearing a green cap"
+    ],
+    "sensory_notes": {
+      "visual": "Bright daylight, vivid colors of market and landscape, shadows falling slightly west, sunlight reflecting off water",
+      "audio": "People chatting, birds chirping, occasional laughter, soft wind rustling leaves, background street noise at the market",
+      "other": "Pleasant warmth, slight breeze, smell of fresh fruit and flowers at the market"
+    }
+  }
+}

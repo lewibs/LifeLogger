@@ -1,0 +1,87 @@
+
+flowchart LR
+
+    A["📍 Event"]
+    B["💾 Store raw data"]
+    C["⚙️ Process raw data"]
+    D[""Raw data, audio, video, metadata]
+    D2["📝 Convert all data to text, Describe objects in frame, Transcribe audio, Include metadata"]
+    E["💡 Prompt explaining how to break apart data"]
+    F["🤖 AI"]
+    G["🕸️ Graph nodes"]
+    G1["• Location"]
+    G1a["- Micro-locations"]
+    G1b["- Movement paths"]
+    G1c["- Contextual info"]
+    G2["• People"]
+    G2a["- Interactions"]
+    G2b["- Relationships"]
+    G3["• Facts / Observations"]
+    G3a["- Cognitive insights"]
+    G3b["- Decisions / Predictions"]
+    G4["• Action Items"]
+    G5["• Temporal / Chronology"]
+    G5a["- Timestamp / Time of Day"]
+    G5b["- Duration / Sequence"]
+    G5c["- Recurring Events"]
+    G6["• Emotional / Sentiment"]
+    G6a["- Mood / Feeling"]
+    G6b["- Intensity"]
+    G6c["- Emotional triggers"]
+    G7["• Objects / Things"]
+    G7a["- Physical objects"]
+    G7b["- Digital objects"]
+    G7c["- Attributes"]
+    G8["• Sensory Data"]
+    G8a["- Visual"]
+    G8b["- Audio"]
+    G8c["- Other senses (smell, taste, touch)"]
+    G9["• Event Metadata"]
+    G9a["- Event Type"]
+    G9b["- Significance / Impact"]
+    G9c["- Frequency / Rarity"]
+    G10["• Media-specific nodes"]
+    G10a["- Photo tags"]
+    G10b["- Audio transcripts"]
+    G10c["- Video frames"]
+    G11["• External References / Linked Data"]
+    G11a["- Linked entities"]
+    G11b["- Temporal anchors"]
+    G11c["- Cultural / societal context"]
+    H["📜 Script to inject nodes"]
+    I["🧠 Neo4j"]
+
+    A --> B --> C --> D --> D2 --> E --> F --> G --> H --> I
+
+    G --> G1 --> G1a
+    G1 --> G1b
+    G1 --> G1c
+    G --> G2 --> G2a
+    G2 --> G2b
+    G --> G3 --> G3a
+    G3 --> G3b
+    G --> G4
+    G --> G5 --> G5a
+    G5 --> G5b
+    G5 --> G5c
+    G --> G6 --> G6a
+    G6 --> G6b
+    G6 --> G6c
+    G --> G7 --> G7a
+    G7 --> G7b
+    G7 --> G7c
+    G --> G8 --> G8a
+    G8 --> G8b
+    G8 --> G8c
+    G --> G9 --> G9a
+    G9 --> G9b
+    G9 --> G9c
+    G --> G10 --> G10a
+    G10 --> G10b
+    G10 --> G10c
+    G --> G11 --> G11a
+    G11 --> G11b
+    G11 --> G11c
+
+    D2 --> E
+
