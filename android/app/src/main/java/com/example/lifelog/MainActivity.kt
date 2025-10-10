@@ -1,31 +1,30 @@
 package com.example.lifelog
 
 import android.content.pm.PackageManager
-import kotlinx.serialization.json.*
 import android.os.Bundle
+import android.util.Log
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.lifelog.ui.theme.LifeLogTheme
-import android.content.Context
-import android.util.Log
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class MainActivity : ComponentActivity() {
     private var hasAudioPerms by mutableStateOf(false)
@@ -34,36 +33,69 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Check permission
         hasAudioPerms = ContextCompat.checkSelfPermission(
             this,
             android.Manifest.permission.RECORD_AUDIO
         ) == PackageManager.PERMISSION_GRANTED
 
+        // Request if not granted
         if (!hasAudioPerms) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.RECORD_AUDIO),
                 100
             )
-            // TODO Throw if permission is not granted
         }
 
         setContent {
             LifeLogTheme {
-                StopwatchScreen(applicationContext)
+                if (hasAudioPerms) {
+                    StopwatchScreen(applicationContext)
+                } else {
+                    PermissionPrompt { requestAudioPermission() }
+                }
             }
+        }
+    }
+
+    private fun requestAudioPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(android.Manifest.permission.RECORD_AUDIO),
+            100
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            hasAudioPerms = true
+            recreate()
+        }
+    }
+}
+
+@Composable
+fun PermissionPrompt(onRequest: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Button(onClick = onRequest) {
+            Text("Grant Microphone Permission")
         }
     }
 }
 
 @Composable
 fun StopwatchScreen(context: Context) {
-    val transcriber = Transcriber(context)
+    val transcriber = remember { Transcriber(context) }
     val transcription = remember { mutableStateOf("Starting...") }
-    val state = remember { mutableStateOf(transcriber.state) };
-    val timeout = remember { mutableStateOf(1000*30) }
+    val state = remember { mutableStateOf(transcriber.state) }
+    val timeout = remember { mutableStateOf(30_000) }
     val TIME_UNIT = 1000
     val timePassed = remember { mutableStateOf(0) }
+    val needUpdate = remember { mutableStateOf(true) }
 
     fun extractTextFromJson(jsonString: String): String {
         val jsonElement = Json.parseToJsonElement(jsonString)
@@ -71,43 +103,85 @@ fun StopwatchScreen(context: Context) {
     }
 
     fun saveTranscriptionToFile(transcription: String, forceCleanup: Boolean = false) {
-        // TODO save timestamp
-        // TODO write to file
         Log.i("Transcription", transcription)
         timePassed.value = 0
-    }
-
-    // LLM Trigger
-    LaunchedEffect(state) {
-        while (true) {
-            if (timePassed.value >= timeout.value) {
-                //TODO Trigger LLM
-                //MIGHT NEED TO ADD A START/STOP STRING HERE IN THE FILE SO WE CAN KEEP ADDING WHILE THE LLM IS DOING ITS THING.
-                Log.i("TIMEOUT", "TIMEOUT")
-                timePassed.value = 0
-            }
-
-            Log.i("TIME PASSED", timePassed.value.toString())
-            delay(TIME_UNIT.toLong())
-            timePassed.value += TIME_UNIT
-        }
     }
 
     LaunchedEffect(Unit) {
         transcriber.addOnResultCallback("result") { results ->
             transcription.value = extractTextFromJson(results)
-            saveTranscriptionToFile(transcription.value)
+            if (!transcription.value.isEmpty()) {
+                saveTranscriptionToFile(transcription.value)
+                timePassed.value = 0
+                needUpdate.value = true
+                Log.i("Transcription", "Transcription: $transcription")
+            } else {
+                Log.i("Transcription", "Transcription is empty")
+            }
         }
-
-//        transcriber.addOnPartialResultCallback("partial") { results ->
-//            if (extractTextFromJson(results).length > 0) {
-//                timePassed.value = 0
-//            }
-//        }
-
         transcriber.addOnFinalResultCallback("final") { results ->
             transcription.value = extractTextFromJson(results)
             saveTranscriptionToFile(transcription.value, true)
+        }
+    }
+
+    suspend fun makeGeminiApiCall(): String? {
+        val text = "This is a test."
+        val client = OkHttpClient()
+        val apiKey = "AIzaSyDV1h6_D0Oka42djjNnIgqNpGkYB12WffE"
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
+        val json = """
+            {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": "$text"
+                            }
+                        ]
+                    }
+                ]
+            }
+        """.trimIndent()
+
+        val requestBody = json.toRequestBody("application/json".toMediaType())
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("Content-Type", "application/json")
+            .addHeader("X-goog-api-key", apiKey)
+            .post(requestBody)
+            .build()
+
+        return withContext(Dispatchers.IO) {
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.string()
+                    } else {
+                        Log.e("GeminiAPI", "API call failed: ${response.code}")
+                        null
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("GeminiAPI", "Network error: ${e.message}")
+                null
+            }
+        }
+    }
+
+    LaunchedEffect(state) {
+        while (true) {
+            if (timePassed.value >= timeout.value && needUpdate.value) {
+                Log.i("GeminiAPI", "Timeout reached")
+//                val apiResponse = makeGeminiApiCall("Explain how AI works in a few words")
+//                apiResponse?.let {
+//                    Log.i("GeminiAPI", "Response: $it")
+//                }
+                timePassed.value = 0
+            }
+            delay(TIME_UNIT.toLong())
+            timePassed.value += TIME_UNIT
         }
     }
 
@@ -117,13 +191,8 @@ fun StopwatchScreen(context: Context) {
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = {
                 if (state.value == State.Playing) {
                     transcriber.pause(true)
@@ -134,9 +203,7 @@ fun StopwatchScreen(context: Context) {
             }) {
                 Text(if (state.value == State.Playing) "Start" else "Stop")
             }
-            Text(
-                text = transcription.value
-            )
+            Text(text = transcription.value)
         }
     }
 }
