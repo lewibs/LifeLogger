@@ -1,0 +1,28 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+**/*.rlib
+**/*.rmeta
+**/*.d
+
+# Generated data
+/data/
+
+# Cargo files
+Cargo.lock
+
+# VSCode settings
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs (IntelliJ, CLion, etc.)
+.idea/
+*.iml
+
+# MacOS
+.DS_Store
+
+# Linux
+*.swp
+*~
+
