@@ -1,5 +1,5 @@
 use rand::prelude::*;
-use rand::seq::SliceRandom; // gives .choose()
+use rand::seq::SliceRandom;
 use serde_json::json;
 use std::fs;
 use std::io::Write;
@@ -13,94 +13,57 @@ fn main() -> std::io::Result<()> {
 
     let mut rng = rand::thread_rng();
 
-    // Sample data
-    let first_names = vec![
-        "Alice", "Bob", "Carol", "Dave", "Eve", "Frank", "Grace", "Heidi", "Ivan", "Judy", "Karl",
-        "Laura", "Mallory", "Niaj", "Olivia", "Peggy", "Rupert", "Sybil", "Trent", "Victor",
-        "Wendy",
+    let types = vec!["memory", "conversation", "activity", "place", "person"];
+    let moods = vec!["happy", "sad", "angry", "excited", "calm"];
+    let topics = vec!["work", "family", "hobby", "travel", "food", "sports"];
+    let activities = vec!["running", "reading", "coding", "gaming", "shopping"];
+    let places = vec!["park", "restaurant", "home", "office", "beach"];
+    let names = vec![
+        "Alice", "Bob", "Carol", "Dave", "Eve", "Frank", "Grace", "Heidi", "Ivan", "Judy",
     ];
-    let cities = vec![
-        "New York",
-        "San Francisco",
-        "Chicago",
-        "Austin",
-        "Miami",
-        "Seattle",
-        "Denver",
-        "Boston",
-        "Los Angeles",
-        "Portland",
-    ];
-    let companies = vec![
-        "OpenAI",
-        "Techtonic",
-        "Globex",
-        "Initech",
-        "Hooli",
-        "Cyberdyne",
-        "Umbrella",
-        "Wayne Enterprises",
-        "Stark Industries",
-        "Wonka Labs",
-    ];
-    let regions = vec!["North", "South", "East", "West", "Midwest"];
-    let industries = vec!["Tech", "Finance", "Healthcare", "Retail", "Energy"];
+    let cities = vec!["New York", "San Francisco", "Austin", "Miami"];
 
-    // Generate People
-    for name in &first_names {
+    let s3_base = "https://s3.fakebucket.com/";
+
+    for i in 0..50 {
+        let entry_type = types.choose(&mut rng).unwrap();
+
+        // Pick all random values first
         let city = cities.choose(&mut rng).unwrap();
-        let employer = companies.choose(&mut rng).unwrap();
-        let age = rng.gen_range(20..65);
-        let salary = rng.gen_range(40_000..150_000);
+        let person1 = names.choose(&mut rng).unwrap();
+        let person2 = names.choose(&mut rng).unwrap();
+        let activity = activities.choose(&mut rng).unwrap();
+        let place = places.choose(&mut rng).unwrap();
+        let mood = moods.choose(&mut rng).unwrap();
+        let topic = topics.choose(&mut rng).unwrap();
+        let age = rng.gen_range(18..80);
+        let duration_minutes = rng.gen_range(5..120);
+        let visited_times = rng.gen_range(1..20);
 
-        let person = json!({
-            "name": name,
-            "age": age,
-            "city": city,
-            "employer": employer,
-            "salary": salary,
+        let metadata = match *entry_type {
+            "memory" => json!({ "mood": mood, "topic": topic }),
+            "conversation" => json!({ "participants": [person1, person2], "topic": topic }),
+            "activity" => {
+                json!({ "activity_type": activity, "duration_minutes": duration_minutes })
+            }
+            "place" => json!({ "name": place, "visited_times": visited_times }),
+            "person" => json!({ "name": person1, "age": age, "city": city }),
+            _ => json!({}),
+        };
+
+        let url = format!("{}{}.json", s3_base, i);
+
+        let json_object = json!({
+            "type": entry_type,
+            "metadata": metadata,
+            "url": url
         });
 
-        let filename = format!("./data/{}.Person.json", name.to_lowercase());
-        write_json(&filename, &person)?;
+        let filename = format!("./data/{}.{}.json", i, entry_type);
+        write_json(&filename, &json_object)?;
     }
 
-    // Generate Cities
-    for city_name in &cities {
-        let region = regions.choose(&mut rng).unwrap();
-
-        let city_data = json!({
-            "name": city_name,
-            "population": rng.gen_range(100_000..10_000_000),
-            "region": region
-        });
-
-        let filename = format!(
-            "./data/{}.City.json",
-            city_name.replace(" ", "_").to_lowercase()
-        );
-        write_json(&filename, &city_data)?;
-    }
-
-    // Generate Companies
-    for company_name in &companies {
-        let industry = industries.choose(&mut rng).unwrap();
-
-        let company_data = json!({
-            "name": company_name,
-            "industry": industry,
-            "founded": rng.gen_range(1950..2024),
-            "employee_count": rng.gen_range(50..10_000),
-        });
-
-        let filename = format!(
-            "./data/{}.Company.json",
-            company_name.replace(" ", "_").to_lowercase()
-        );
-        write_json(&filename, &company_data)?;
-    }
-
-    println!("✅ Generated sample data in ./data/");
+    println!("✅ Generated random typed data in ./data/");
     Ok(())
 }
 
